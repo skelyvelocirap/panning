@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "panning:iron_flake"
+    }
+  },
+  "result": {
+    "item": "minecraft:iron_nugget"
+  }
+}
