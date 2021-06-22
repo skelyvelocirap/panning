@@ -61,7 +61,7 @@ public class PanningAction {
 		List<ItemStack> drops = new ArrayList<>();
 		for(int i = 0; i < possibleDrops.size(); i++) {
 			Pannable drop = possibleDrops.get(i);
-			if(player.getFluidHeight(drop.getFluidType()) > 0.0D) {
+			if(inFluidForDrops(player)) {
 				if(panLevel > drop.getPanLevel()) {
 					float chance = drop.getChance();
 					if(chance >= random.nextFloat()) {
@@ -74,6 +74,16 @@ public class PanningAction {
 			}
 		}
 		return drops;
+	}
+	
+	public static boolean inFluidForDrops(PlayerEntity player) {
+		for(int i = 0; i < possibleDrops.size(); i++) {
+			Pannable drop = possibleDrops.get(i);
+			if(player.getFluidHeight(drop.getFluidType()) > 0.0D) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public static float getExperience(int recipeId) {

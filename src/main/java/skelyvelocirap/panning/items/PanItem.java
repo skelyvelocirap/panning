@@ -36,6 +36,11 @@ public class PanItem extends Item {
 	}
 	
 	@Override
+	public int getMaxDamage(ItemStack stack) {
+		return getUseDuration(stack);
+	}
+	
+	@Override
 	public boolean canEquip(ItemStack stack, EquipmentSlotType armorType, Entity entity) {
 		return armorType == EquipmentSlotType.HEAD;
 	}
@@ -53,7 +58,7 @@ public class PanItem extends Item {
 	@Override
 	public boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
 		CompoundNBT compound = getNBTTagCompound(stack);
-		ItemStack inventoryStack = ItemStack.of((CompoundNBT)compound.get("pannedItem"));
+		ItemStack inventoryStack = getItemInPan(stack);
 		
 		if(inventoryStack.isEmpty()) {
 			World world = entity.level;
@@ -68,7 +73,7 @@ public class PanItem extends Item {
 							if(player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) < 64.0D) {
 								if(PanningAction.blockHasResult(player.level.getBlockState(pos).getBlock())) {
 									inventoryStack = new ItemStack(world.getBlockState(pos).getBlock(), 1);
-									compound.put("pannedItem", inventoryStack.serializeNBT());
+									inventoryStack.save(compound);
 									world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 								}
 							}
@@ -80,42 +85,45 @@ public class PanItem extends Item {
 		return super.onEntitySwing(stack, entity);
 	}
 	@Override
-	public ItemStack finishUsingItem(ItemStack p_77654_1_, World p_77654_2_, LivingEntity p_77654_3_) {
-		Panning.LOGGER.debug("Finished");
-		return super.finishUsingItem(p_77654_1_, p_77654_2_, p_77654_3_);
-	}
-	
-	@Override
-	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-		player.startUsingItem(hand);
-		return ActionResult.sidedSuccess(player.getItemInHand(hand), true);
+	public ItemStack finishUsingItem(ItemStack stack, World world, LivingEntity entity) {
+		stack.setDamageValue(0);
+		CompoundNBT compound = getNBTTagCompound(stack);
+		ItemStack inventoryStack = getItemInPan(stack);
+		if(entity instanceof PlayerEntity) {
+			PlayerEntity player = (PlayerEntity)entity;
+			if(!world.isClientSide) {
+				if(!inventoryStack.isEmpty()){
+					List<ItemStack> results = PanningAction.getDrops(player, 1);
+					for(int i = 0; i < results.size(); i++) {
+						ItemEntity itemEntity = new ItemEntity(world, player.position().x, player.position().y, player.position().z, results.get(i));
+						itemEntity.fireImmune();
+						world.addFreshEntity(itemEntity);
+						player.giveExperiencePoints(Math.round(PanningAction.getExperience(i)));
+					}
+					inventoryStack = ItemStack.EMPTY;
+					inventoryStack.save(compound);
+				}
+			}
+		}
+		return super.finishUsingItem(stack, world, entity);
 	}
 	
 	@Override
 	public void onUseTick(World world, LivingEntity entity, ItemStack stack, int ticks) {
-		CompoundNBT compound = getNBTTagCompound(stack);
-		compound.putInt("progress", ticks);
-		ItemStack inventoryStack = ItemStack.of((CompoundNBT)compound.get("pannedItem"));
-		
-		if(entity instanceof PlayerEntity) {
-			PlayerEntity player = (PlayerEntity)entity;
-			if(ticks <= 1) {
-				if(!world.isClientSide) {
-					if(!inventoryStack.isEmpty()){
-						List<ItemStack> results = PanningAction.getDrops(player, 1);
-						for(int i = 0; i < results.size(); i++) {
-							ItemEntity itemEntity = new ItemEntity(world, player.position().x, player.position().y, player.position().z, results.get(i));
-							itemEntity.fireImmune();
-							world.addFreshEntity(itemEntity);
-							player.giveExperiencePoints(Math.round(PanningAction.getExperience(i)));
-						}
-						inventoryStack = ItemStack.EMPTY;
-						compound.put("pannedItem", inventoryStack.serializeNBT());
-					}
-				}
+		stack.setDamageValue(stack.getMaxDamage() - ticks);
+	}
+	
+	@Override
+	public ActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+		ItemStack stack = player.getItemInHand(hand);
+		if(PanningAction.inFluidForDrops(player)) {
+			if(!getItemInPan(stack).isEmpty()) {
+				Panning.LOGGER.debug(getItemInPan(stack));
+				player.startUsingItem(hand);
+				return ActionResult.sidedSuccess(stack, player.getUseItemRemainingTicks() > 0);
 			}
 		}
-		super.onUseTick(world, entity, stack, ticks);
+		return ActionResult.consume(stack);
 	}
 	
 	@Override
@@ -130,18 +138,22 @@ public class PanItem extends Item {
 	
 	@Override
 	public boolean showDurabilityBar(ItemStack stack) {
-		return getItemInPan(stack) == ItemStack.EMPTY ? false : true;
-	}
-	
-	@Override
-	public double getDurabilityForDisplay(ItemStack stack) {
-		CompoundNBT compound = getNBTTagCompound(stack);
-		return compound.contains("progress") ? 1.0D - Double.valueOf(compound.getInt("progress")) / Double.valueOf(getUseDuration(stack)) : 1.0D;
+		return getItemInPan(stack).isEmpty() ? false : true;
 	}
 	
 	public ItemStack getItemInPan(ItemStack stack) {
-		return ItemStack.of(getNBTTagCompound(stack));
+		CompoundNBT compound = getNBTTagCompound(stack);
+		return compound.contains("id") ? ItemStack.of(compound) : ItemStack.EMPTY;
 	}
+	
+	/*public void saveItemType(Item item) {
+		Registry.ITEM.get(new ResourceLocation(Item.getString("id")));
+	}
+	
+	public ItemStack loadItemStack(ItemStack stack) {
+		CompoundNBT compound = getNBTTagCompound(stack);
+		Item item = Registry.ITEM.get(new ResourceLocation(compound.getString("id")));
+	}*/
 	
 	/*
 	public static boolean touchesLiquid(IBlockReader reader, BlockPos pos, ITag<Fluid> fluid) {
