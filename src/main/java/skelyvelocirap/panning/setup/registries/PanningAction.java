@@ -114,14 +114,14 @@ public class PanningAction {
 		return world.getBiome(pos).getRegistryName().equals(possibleDrops.get(id).getBiome());
 	}
 	
-	public static boolean blockHasResultForBiome(World world, BlockPos pos) {
+	public static Pannable blockHasResultForBiome(World world, BlockPos pos) {
 		for(int i = 0; i < possibleDrops.size(); i++) {
 			if(world.getBlockState(pos).getBlock() == possibleDrops.get(i).getBlock()) {
 				if(inBiomeForDrops(world, pos, i)) {
-					return true;
+					return possibleDrops.get(i);
 				}
 			}
 		}
-		return false;
+		return null;
 	}
 }

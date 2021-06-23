@@ -18,10 +18,6 @@ public final class DataGenerators {
 		ExistingFileHelper existingFileHelper = data.getExistingFileHelper();
 		
 		generator.addProvider(new ModItemModelProvider(generator, existingFileHelper));
-		
-		//ModItemTagsProvider itemTags = new ModItemTagsProvider(generator, blockTags, existingFileHelper);
-		//generator.addProvider(itemTags);
-		
 		generator.addProvider(new ModRecipeProvider(generator));
 	}
 }

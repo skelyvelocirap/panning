@@ -2,6 +2,7 @@ package skelyvelocirap.panning.items;
 
 import java.util.List;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
@@ -9,18 +10,23 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.monster.EndermanEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.tags.ITag;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceContext.FluidMode;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import skelyvelocirap.panning.setup.registries.Pannable;
 import skelyvelocirap.panning.setup.registries.PanningAction;
 
 public class PanItem extends Item {
@@ -71,11 +77,14 @@ public class PanItem extends Item {
 						BlockRayTraceResult blockTraceResult = (BlockRayTraceResult)traceResult;
 						BlockPos pos = blockTraceResult.getBlockPos();
 						if(player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) < 64.0D) {
-							if(PanningAction.blockHasResultForBiome(player.level, pos)) {
-								inventoryStack = new ItemStack(world.getBlockState(pos).getBlock(), 1);
-								inventoryStack.save(compound);
-								compound.putLong("biome", pos.asLong());
-								world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+							Pannable result = PanningAction.blockHasResultForBiome(world, pos);
+							if(result != null) {
+								if(touchesLiquid(world, pos, result.getFluidType())) {
+									inventoryStack = new ItemStack(world.getBlockState(pos).getBlock(), 1);
+									inventoryStack.save(compound);
+									compound.putLong("pos", pos.asLong());
+									world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+								}
 							}
 						}
 					}
@@ -94,7 +103,7 @@ public class PanItem extends Item {
 			if(!world.isClientSide) {
 				if(!inventoryStack.isEmpty()){
 					if(PanningAction.inFluidForDrops(player)) {
-						List<ItemStack> results = PanningAction.getDrops(player, BlockPos.of(compound.getLong("biome")), 1);
+						List<ItemStack> results = PanningAction.getDrops(player, BlockPos.of(compound.getLong("pos")), 1);
 						for(int i = 0; i < results.size(); i++) {
 							ItemEntity itemEntity = new ItemEntity(world, player.position().x, player.position().y, player.position().z, results.get(i));
 							itemEntity.setInvulnerable(true);
@@ -124,7 +133,6 @@ public class PanItem extends Item {
 		if(PanningAction.inFluidForDrops(player)) {
 			if(!getItemInPan(stack).isEmpty()) {
 				player.startUsingItem(hand);
-				//return ActionResult.sidedSuccess(stack, !(player.getUseItemRemainingTicks() > 0));
 				if(player.getUseItemRemainingTicks() > 0) {
 					return ActionResult.pass(stack);
 				}
@@ -154,16 +162,6 @@ public class PanItem extends Item {
 		return compound.contains("id") ? ItemStack.of(compound) : ItemStack.EMPTY;
 	}
 	
-	/*public void saveItemType(Item item) {
-		Registry.ITEM.get(new ResourceLocation(Item.getString("id")));
-	}
-	
-	public ItemStack loadItemStack(ItemStack stack) {
-		CompoundNBT compound = getNBTTagCompound(stack);
-		Item item = Registry.ITEM.get(new ResourceLocation(compound.getString("id")));
-	}*/
-	
-	/*
 	public static boolean touchesLiquid(IBlockReader reader, BlockPos pos, ITag<Fluid> fluid) {
       boolean flag = false;
       BlockPos.Mutable blockpos$mutable = pos.mutable();
@@ -179,12 +177,10 @@ public class PanItem extends Item {
             }
          }
       }
-
       return flag;
    }
 
    public static boolean isFluidType(BlockState blockState, ITag<Fluid> fluid) {
       return blockState.getFluidState().is(fluid);
    }
-   */
 }

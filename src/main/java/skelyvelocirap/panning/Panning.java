@@ -10,11 +10,10 @@ import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import skelyvelocirap.panning.setup.registries.PanningAction;
 import skelyvelocirap.panning.setup.registries.Registration;
 
-// The value here should match an entry in the META-INF/mods.toml file
+
 @Mod(Panning.MODID)
 public class Panning
 {
-    // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger();
     public static final String MODID = "panning";
 
@@ -23,7 +22,6 @@ public class Panning
         MinecraftForge.EVENT_BUS.register(this);
     }
     
- // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
 		PanningAction.registerDrops();

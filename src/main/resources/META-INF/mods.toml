@@ -5,11 +5,11 @@ license="All rights reserved"
 modId="panning" #mandatory
 version="0.1.1" #mandatory
 displayName="Panning" #mandatory
-#logoFile="examplemod.png" #optional
-#credits="Thanks for this example mod goes to Java" #optional
+#logoFile="panning_icon.png" #optional
+#credits="Thanks to SerpentDagger, Luis_ST, and diesieben07 for all the help."#optional
 authors="Skelyvelocirap" #optional
 description='''
-A simple mod for panning minerals in rivers
+A simple mod for panning minerals
 '''
 
 [[dependencies.examplemod]] #optional
