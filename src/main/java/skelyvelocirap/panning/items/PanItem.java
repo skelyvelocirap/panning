@@ -21,10 +21,11 @@ import net.minecraft.util.math.RayTraceContext.FluidMode;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
-import skelyvelocirap.panning.Panning;
 import skelyvelocirap.panning.setup.registries.PanningAction;
 
 public class PanItem extends Item {
+	
+	public static int itemUseTicks = 100;
 	
 	public PanItem(Properties properties) {
 		super(properties);
@@ -32,7 +33,7 @@ public class PanItem extends Item {
 	
 	@Override
 	public int getUseDuration(ItemStack stack) {
-		return 100;
+		return itemUseTicks;
 	}
 	
 	@Override
@@ -69,13 +70,12 @@ public class PanItem extends Item {
 					if(traceResult.getType() == RayTraceResult.Type.BLOCK) {
 						BlockRayTraceResult blockTraceResult = (BlockRayTraceResult)traceResult;
 						BlockPos pos = blockTraceResult.getBlockPos();
-						if(PanningAction.inBiomeForDrops(player, pos)) {
-							if(player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) < 64.0D) {
-								if(PanningAction.blockHasResult(player.level.getBlockState(pos).getBlock())) {
-									inventoryStack = new ItemStack(world.getBlockState(pos).getBlock(), 1);
-									inventoryStack.save(compound);
-									world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-								}
+						if(player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) < 64.0D) {
+							if(PanningAction.blockHasResultForBiome(player.level, pos)) {
+								inventoryStack = new ItemStack(world.getBlockState(pos).getBlock(), 1);
+								inventoryStack.save(compound);
+								compound.putLong("biome", pos.asLong());
+								world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 							}
 						}
 					}
@@ -93,15 +93,18 @@ public class PanItem extends Item {
 			PlayerEntity player = (PlayerEntity)entity;
 			if(!world.isClientSide) {
 				if(!inventoryStack.isEmpty()){
-					List<ItemStack> results = PanningAction.getDrops(player, 1);
-					for(int i = 0; i < results.size(); i++) {
-						ItemEntity itemEntity = new ItemEntity(world, player.position().x, player.position().y, player.position().z, results.get(i));
-						itemEntity.fireImmune();
-						world.addFreshEntity(itemEntity);
-						player.giveExperiencePoints(Math.round(PanningAction.getExperience(i)));
+					if(PanningAction.inFluidForDrops(player)) {
+						List<ItemStack> results = PanningAction.getDrops(player, BlockPos.of(compound.getLong("biome")), 1);
+						for(int i = 0; i < results.size(); i++) {
+							ItemEntity itemEntity = new ItemEntity(world, player.position().x, player.position().y, player.position().z, results.get(i));
+							itemEntity.setInvulnerable(true);
+							itemEntity.fireImmune();
+							world.addFreshEntity(itemEntity);
+							player.giveExperiencePoints(Math.round(PanningAction.getExperience(i)));
+						}
+						inventoryStack = ItemStack.EMPTY;
+						inventoryStack.save(compound);
 					}
-					inventoryStack = ItemStack.EMPTY;
-					inventoryStack.save(compound);
 				}
 			}
 		}
@@ -110,7 +113,9 @@ public class PanItem extends Item {
 	
 	@Override
 	public void onUseTick(World world, LivingEntity entity, ItemStack stack, int ticks) {
-		stack.setDamageValue(stack.getMaxDamage() - ticks);
+		if(ticks % 3 == 0) {
+			stack.setDamageValue(stack.getMaxDamage() - ticks);
+		}
 	}
 	
 	@Override
@@ -118,12 +123,15 @@ public class PanItem extends Item {
 		ItemStack stack = player.getItemInHand(hand);
 		if(PanningAction.inFluidForDrops(player)) {
 			if(!getItemInPan(stack).isEmpty()) {
-				Panning.LOGGER.debug(getItemInPan(stack));
 				player.startUsingItem(hand);
-				return ActionResult.sidedSuccess(stack, player.getUseItemRemainingTicks() > 0);
+				//return ActionResult.sidedSuccess(stack, !(player.getUseItemRemainingTicks() > 0));
+				if(player.getUseItemRemainingTicks() > 0) {
+					return ActionResult.pass(stack);
+				}
+				return ActionResult.success(stack);
 			}
 		}
-		return ActionResult.consume(stack);
+		return ActionResult.pass(stack);
 	}
 	
 	@Override
