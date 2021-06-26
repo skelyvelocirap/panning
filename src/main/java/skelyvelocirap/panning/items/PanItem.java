@@ -31,7 +31,7 @@ import skelyvelocirap.panning.setup.registries.PanningAction;
 
 public class PanItem extends Item {
 	
-	public static int itemUseTicks = 100;
+	public static int itemUseTicks = 200;
 	
 	public PanItem(Properties properties) {
 		super(properties);

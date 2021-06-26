@@ -1,23 +1,25 @@
 package skelyvelocirap.panning.setup.registries;
 
-import net.minecraft.block.Block;
+import java.util.List;
+
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.Item;
 import net.minecraft.tags.ITag;
-import net.minecraft.util.ResourceLocation;
+import skelyvelocirap.panning.crafting.BiomeModifier;
+import skelyvelocirap.panning.crafting.BlockModifier;
 
 public class Pannable {
-	private Block foundIn;
+	private List<BlockModifier> foundIn;
+	private List<BiomeModifier> biome;
 	private Item drop;
 	private float chance = 0.0F;
-	private ResourceLocation biome;
 	private ITag<Fluid> fluid;
 	private int panLevel = 0;
 	private float experience = 0;
 	private int min = 1;
 	private int max = 1;
 	
-	public Pannable(Block foundIn, Item drop, float chance, ResourceLocation biome, ITag<Fluid> fluid, float experience, int panLevel, int min, int max) {
+	public Pannable(List<BlockModifier> foundIn, List<BiomeModifier> biome, Item drop, float chance, ITag<Fluid> fluid, float experience, int panLevel, int min, int max) {
 		this.foundIn = foundIn;
 		this.drop = drop;
 		this.chance = chance;
@@ -29,7 +31,7 @@ public class Pannable {
 		this.max = max;
 	}
 	
-	public Block getBlock() {
+	public List<BlockModifier> getBlock() {
 		return foundIn;
 	}
 	
@@ -41,7 +43,7 @@ public class Pannable {
 		return chance;
 	}
 	
-	public ResourceLocation getBiome(){
+	public List<BiomeModifier> getBiome(){
 		return biome;
 	}
 	

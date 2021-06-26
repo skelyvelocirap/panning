@@ -3,7 +3,7 @@ loaderVersion="[36,)" #mandatory This is typically bumped every Minecraft versio
 license="All rights reserved"
 [[mods]] #mandatory
 modId="panning" #mandatory
-version="0.1.1" #mandatory
+version="1.16.5-1.0.0" #mandatory
 displayName="Panning" #mandatory
 #logoFile="panning_icon.png" #optional
 #credits="Thanks to SerpentDagger, Luis_ST, and diesieben07 for all the help."#optional
