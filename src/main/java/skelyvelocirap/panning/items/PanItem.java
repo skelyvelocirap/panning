@@ -26,8 +26,8 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import skelyvelocirap.panning.setup.PanningAction;
 import skelyvelocirap.panning.setup.registries.Pannable;
-import skelyvelocirap.panning.setup.registries.PanningAction;
 
 public class PanItem extends Item {
 	

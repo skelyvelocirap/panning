@@ -1,4 +1,4 @@
-package skelyvelocirap.panning.setup.registries;
+package skelyvelocirap.panning.setup;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biomes;
 import skelyvelocirap.panning.crafting.BiomeModifier;
 import skelyvelocirap.panning.crafting.BlockModifier;
-import skelyvelocirap.panning.setup.ModItems;
+import skelyvelocirap.panning.setup.registries.Pannable;
 
 public class PanningAction {
 	static List<Pannable> possibleDrops;

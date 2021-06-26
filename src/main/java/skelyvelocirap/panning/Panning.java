@@ -7,7 +7,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
-import skelyvelocirap.panning.setup.registries.PanningAction;
+import skelyvelocirap.panning.setup.PanningAction;
 import skelyvelocirap.panning.setup.registries.Registration;
 
 
