@@ -1,5 +1,6 @@
 package skelyvelocirap.panning.setup.registries;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.fluid.Fluid;
@@ -20,10 +21,10 @@ public class Pannable {
 	private int max = 1;
 	
 	public Pannable(List<BlockModifier> foundIn, List<BiomeModifier> biome, Item drop, float chance, ITag<Fluid> fluid, float experience, int panLevel, int min, int max) {
-		this.foundIn = foundIn;
+		this.foundIn = new ArrayList<BlockModifier>(foundIn);
 		this.drop = drop;
 		this.chance = chance;
-		this.biome = biome;
+		this.biome = new ArrayList<BiomeModifier>(biome);
 		this.fluid = fluid;
 		this.panLevel = panLevel;
 		this.experience = experience;
@@ -32,39 +33,39 @@ public class Pannable {
 	}
 	
 	public List<BlockModifier> getBlock() {
-		return foundIn;
+		return this.foundIn;
 	}
 	
 	public Item getDrop() {
-		return drop;
+		return this.drop;
 	}
 	
 	public float getChance() {
-		return chance;
+		return this.chance;
 	}
 	
 	public List<BiomeModifier> getBiome(){
-		return biome;
+		return this.biome;
 	}
 	
 	public ITag<Fluid> getFluidType() {
-		return fluid;
+		return this.fluid;
 	}
 	
 	public float getExperience() {
-		return experience;
+		return this.experience;
 	}
 	
 	public int getPanLevel() {
-		return panLevel;
+		return this.panLevel;
 	}
 	
 	public int getMin() {
-		return min;
+		return this.min;
 	}
 	
 	public int getMax() {
-		return max;
+		return this.max;
 	}
 	
 }

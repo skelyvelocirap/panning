@@ -12,6 +12,7 @@ import net.minecraft.entity.monster.EndermanEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -80,8 +81,7 @@ public class PanItem extends Item {
 							Pannable result = PanningAction.blockHasResultForBiome(world, pos);
 							if(result != null) {
 								if(touchesLiquid(world, pos, result.getFluidType())) {
-									inventoryStack = new ItemStack(world.getBlockState(pos).getBlock(), 1);
-									inventoryStack.save(compound);
+									saveNBTtoStack(stack, new ItemStack(world.getBlockState(pos).getBlock(), 1), compound);
 									compound.putLong("pos", pos.asLong());
 									world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 								}
@@ -103,21 +103,30 @@ public class PanItem extends Item {
 			if(!world.isClientSide) {
 				if(!inventoryStack.isEmpty()){
 					if(PanningAction.inFluidForDrops(player)) {
-						List<ItemStack> results = PanningAction.getDrops(player, BlockPos.of(compound.getLong("pos")), 1);
-						for(int i = 0; i < results.size(); i++) {
-							ItemEntity itemEntity = new ItemEntity(world, player.position().x, player.position().y, player.position().z, results.get(i));
-							itemEntity.setInvulnerable(true);
-							itemEntity.fireImmune();
-							world.addFreshEntity(itemEntity);
-							player.giveExperiencePoints(Math.round(PanningAction.getExperience(i)));
+						if(inventoryStack.getItem() instanceof BlockItem) {
+							List<ItemStack> results = PanningAction.getDrops(player, BlockPos.of(compound.getLong("pos")), ((BlockItem)inventoryStack.getItem()).getBlock(), 1);
+							for(int i = 0; i < results.size(); i++) {
+								ItemEntity itemEntity = new ItemEntity(world, player.position().x, player.position().y, player.position().z, results.get(i));
+								itemEntity.setInvulnerable(true);
+								itemEntity.fireImmune();
+								world.addFreshEntity(itemEntity);
+								player.giveExperiencePoints(Math.round(PanningAction.getExperience(i)));
+							}
+							saveNBTtoStack(stack, ItemStack.EMPTY, compound);
+						} else {
+							saveNBTtoStack(stack, ItemStack.EMPTY, compound);
+							return stack;
 						}
-						inventoryStack = ItemStack.EMPTY;
-						inventoryStack.save(compound);
 					}
 				}
 			}
 		}
 		return super.finishUsingItem(stack, world, entity);
+	}
+	
+	public static void saveNBTtoStack(ItemStack stack, ItemStack newStack, CompoundNBT compound) {
+		stack = newStack;
+		stack.save(compound);
 	}
 	
 	@Override

@@ -15,7 +15,7 @@ public class BiomeModifier {
 		return biome;
 	}
 	
-	public float getChanceModifier() {
+	public float getModifier() {
 		return chanceModifier;
 	}
 }
